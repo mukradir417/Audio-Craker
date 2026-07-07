@@ -1,11 +1,22 @@
 {
   "manifest_version": 3,
-  "name": "My Audio Capture",
+  "name": "Mitu YT Audio Pro",
   "version": "1.0",
-  "description": "A simple extension to capture and download website audio.",
-  "permissions": ["activeTab", "scripting", "downloads"],
+  "description": "Premium extension with Firebase License Authentication.",
+  "permissions": ["activeTab", "scripting", "downloads", "storage"],
+  "host_permissions": ["<all_urls>", "https://firestore.googleapis.com/*"],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
   "action": {
-    "default_title": "Start Audio Capture"
+    "default_title": "Start Audio Master",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
   },
   "background": {
     "service_worker": "background.js"

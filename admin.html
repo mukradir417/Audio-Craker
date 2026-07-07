@@ -3,47 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Master - Advanced Admin Panel</title>
+    <title>Mitu YT - Advanced Admin Panel</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
-        .container { max-width: 1050px; margin: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 15px; margin-bottom: 20px; }
-        .card { background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); margin-bottom: 20px; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
         
-        .form-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        select, input, button { padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; outline: none; font-weight: bold; }
-        button { background: #2563eb; cursor: pointer; border: none; transition: 0.2s; }
-        button:hover { background: #1d4ed8; }
+        body { font-family: 'Inter', sans-serif; background: #020617; color: #f8fafc; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; }
         
-        .btn-danger { background: #ef4444; } .btn-danger:hover { background: #b91c1c; }
-        .btn-warning { background: #f59e0b; color: #000; } .btn-warning:hover { background: #d97706; }
-        .btn-info { background: #06b6d4; } .btn-info:hover { background: #0891b2; }
+        /* Premium Header */
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 20px; margin-bottom: 25px; }
+        .header h2 { margin: 0; font-size: 24px; font-weight: 800; background: linear-gradient(90deg, #60a5fa, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .connected-badge { color: #10b981; font-weight: 800; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 8px 16px; border-radius: 30px; font-size: 13px; box-shadow: 0 0 15px rgba(16,185,129,0.2); }
         
+        /* Glassmorphism Cards */
+        .card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); }
+        .card h3 { margin-top: 0; font-size: 18px; color: #e2e8f0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        /* Form Controls */
+        .form-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        select, input { padding: 12px 16px; border-radius: 10px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.6); color: #fff; outline: none; font-weight: 600; font-family: 'Inter', sans-serif; transition: 0.3s; }
+        select:focus, input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        
+        /* Buttons */
+        button { font-family: 'Inter', sans-serif; font-weight: 800; cursor: pointer; border: none; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+        button:active { transform: scale(0.95); }
+        .btn-main { background: linear-gradient(135deg, #2563eb, #1d4ed8); padding: 12px 20px; border-radius: 10px; color: white; box-shadow: 0 4px 15px rgba(37,99,235,0.3); }
+        .btn-main:hover { filter: brightness(1.1); box-shadow: 0 6px 20px rgba(37,99,235,0.5); }
+        
+        .action-btns button { padding: 8px 12px; font-size: 11px; border-radius: 8px; color: white; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #b91c1c); box-shadow: 0 4px 10px rgba(239,68,68,0.2); } 
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 10px rgba(245,158,11,0.2); } 
+        .btn-info { background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 4px 10px rgba(6,182,212,0.2); } 
+        .btn-block { background: linear-gradient(135deg, #9333ea, #7e22ce); box-shadow: 0 4px 10px rgba(147,51,234,0.2); } 
+        .btn-unblock { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 10px rgba(16,185,129,0.2); }
+        
+        /* Table Design */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; font-size: 13px; }
-        th { color: #94a3b8; text-transform: uppercase; font-size: 11px; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-        .badge-active { background: #10b981; }
-        .badge-expired { background: #ef4444; }
-        .days-left { color: #38bdf8; font-weight: bold; font-size: 11px; margin-left: 5px; }
+        tr { transition: background 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        th, td { padding: 16px 12px; text-align: left; font-size: 13px; }
+        th { color: #94a3b8; text-transform: uppercase; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
         
-        .action-btns { display: flex; gap: 5px; flex-wrap: wrap; }
-        .action-btns button { padding: 6px 10px; font-size: 11px; border-radius: 6px; }
+        /* Badges & Texts */
+        .badge { padding: 5px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-active { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .badge-expired { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+        .badge-blocked { background: rgba(147, 51, 234, 0.2); color: #c084fc; border: 1px solid rgba(147,51,234,0.3); }
+        .days-left { color: #38bdf8; font-weight: 800; font-size: 11px; margin-left: 6px; background: rgba(56,189,248,0.1); padding: 2px 6px; border-radius: 4px; }
+        
+        /* Copy & Note */
+        .copy-btn { font-size: 10px; margin-left: 8px; padding: 4px 8px; background: rgba(255,255,255,0.1); border-radius: 6px; color: #e2e8f0; transition: 0.2s; border: 1px solid rgba(255,255,255,0.1); }
+        .copy-btn:hover { background: #3b82f6; border-color: #3b82f6; }
+        
+        .note-text { font-size: 12px; color: #94a3b8; cursor: pointer; padding: 4px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; border: 1px dashed rgba(255,255,255,0.1); transition: 0.2s; display: inline-block; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .note-text:hover { color: #fff; background: rgba(255,255,255,0.1); border-color: #cbd5e1; }
+        .note-empty { color: #475569; font-style: italic; }
+        
+        .action-btns { display: flex; gap: 8px; flex-wrap: wrap; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h2>🎧 Audio Master - Advanced Admin Panel</h2>
-        <span style="color: #10b981; font-weight: bold; background: rgba(16, 185, 129, 0.1); padding: 8px 15px; border-radius: 20px;">🟢 Firebase Connected</span>
+        <h2>🚀 Mitu YT - Advanced Admin Panel</h2>
+        <span class="connected-badge">🟢 Firebase Connected</span>
     </div>
 
     <div class="card">
-        <h3 style="margin-top: 0;">Create New License</h3>
+        <h3>✨ Create New License</h3>
         <div class="form-group">
             <select id="plan" onchange="toggleCustomInput()">
                 <option value="1">1 Day (Trial)</option>
@@ -56,18 +87,19 @@
             
             <input type="number" id="customDays" placeholder="Enter Days" style="display: none; width: 120px;" min="1">
             
-            <button onclick="generateLicense()">➕ Generate Key</button>
+            <button class="btn-main" onclick="generateLicense()">➕ Generate Key</button>
         </div>
     </div>
 
     <div class="card">
-        <h3 style="margin-top: 0;">All Active & Expired Licenses</h3>
+        <h3>📊 All Active & Expired Licenses</h3>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
                     <tr>
                         <th>License Key</th>
                         <th>Plan</th>
+                        <th>User Note 📝</th>
                         <th>Status</th>
                         <th>Expiry Date</th>
                         <th>Device Locked (ID)</th>
@@ -116,7 +148,7 @@
         return `AH-${segment()}-${segment()}-${segment()}`;
     }
 
-    // Add License to Firebase
+    // Add License to Firebase (With Note Field)
     async function generateLicense() {
         const planSelect = document.getElementById('plan').value;
         let days = parseInt(planSelect);
@@ -139,11 +171,14 @@
         await db.collection("licenses").doc(key).set({
             plan: planName,
             status: "active",
-            deviceId: "", // Initially empty (No device locked)
-            expiresAt: expiryDate.toISOString().split('T')[0] // Format: YYYY-MM-DD
+            deviceId: "", // Initially empty
+            expiresAt: expiryDate.toISOString().split('T')[0], 
+            note: "" // 🌟 New Note Field
         });
         
-        alert(`New Key Generated Successfully!\nKey: ${key}\nDuration: ${planName}`);
+        // Auto copy generated key to clipboard
+        navigator.clipboard.writeText(key);
+        alert(`New Key Generated Successfully! (Copied to clipboard)\nKey: ${key}\nDuration: ${planName}`);
     }
 
     // Load Licenses from Firebase
@@ -166,20 +201,49 @@
                 const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
                 
                 const isExpired = daysLeft < 0;
-                const statusBadge = isExpired ? '<span class="badge badge-expired">Expired</span>' : '<span class="badge badge-active">Active</span>';
+                const isBlocked = data.status === 'blocked';
+                
+                let statusBadge = '';
+                if (isBlocked) {
+                    statusBadge = '<span class="badge badge-blocked">Blocked / Kicked</span>';
+                } else if (isExpired) {
+                    statusBadge = '<span class="badge badge-expired">Expired</span>';
+                } else {
+                    statusBadge = '<span class="badge badge-active">Active</span>';
+                }
+                
                 const daysText = isExpired ? `<span class="days-left" style="color:#ef4444;">(Expired)</span>` : `<span class="days-left">(${daysLeft} Days Left)</span>`;
                 
                 // Device Display
-                const deviceDisplay = data.deviceId ? `<span style="color:#fbbf24;">🔒 ${data.deviceId}</span>` : `<span style="color:#10b981;">🟢 Free (Not Used)</span>`;
+                const deviceDisplay = data.deviceId ? `<span style="color:#fbbf24; font-weight:800;">🔒 ${data.deviceId}</span>` : `<span style="color:#10b981; font-weight:800;">🟢 Free</span>`;
+
+                // 🌟 Note Logic (Click to Edit)
+                const safeNote = data.note ? data.note.replace(/'/g, "\\'") : '';
+                const noteDisplay = data.note 
+                    ? `<span class="note-text" onclick="editNote('${key}', '${safeNote}')" title="${data.note}">📌 ${data.note}</span>` 
+                    : `<span class="note-text note-empty" onclick="editNote('${key}', '')">➕ Add Note</span>`;
+
+                // Plan Design (Highlights if Upgraded)
+                const planDesign = data.plan.includes("Upgraded") ? `<span style="color: #c084fc; font-weight: 800;">${data.plan}</span>` : `<span style="color: #cbd5e1; font-weight: 600;">${data.plan}</span>`;
+
+                // Block/Unblock Button
+                const blockBtn = isBlocked 
+                    ? `<button class="btn-unblock" onclick="toggleBlock('${key}', 'blocked')">✅ Unblock</button>` 
+                    : `<button class="btn-block" onclick="toggleBlock('${key}', 'active')">🚫 Kick</button>`;
 
                 // Row Design
                 const row = `<tr>
-                    <td style="font-family: monospace; font-weight: bold; color: #fff;">${key}</td>
-                    <td style="color: #cbd5e1;">${data.plan}</td>
+                    <td style="font-family: monospace; font-weight: 800; color: #fff; display: flex; align-items: center;">
+                        ${key}
+                        <button class="copy-btn" onclick="copyToClipboard('${key}')" title="Copy Key">📋</button>
+                    </td>
+                    <td>${planDesign}</td>
+                    <td>${noteDisplay}</td>
                     <td>${statusBadge}</td>
-                    <td>${data.expiresAt} <br>${daysText}</td>
+                    <td style="font-weight: 600;">${data.expiresAt} <br>${daysText}</td>
                     <td style="font-family: monospace;">${deviceDisplay}</td>
                     <td class="action-btns">
+                        ${blockBtn}
                         <button class="btn-info" onclick="editExpiry('${key}', '${data.expiresAt}')">⏱ Edit Time</button>
                         <button class="btn-warning" onclick="resetDevice('${key}', '${data.deviceId}')">🔄 Reset ID</button>
                         <button class="btn-danger" onclick="deleteLicense('${key}')">🗑 Delete</button>
@@ -190,41 +254,85 @@
         });
     }
 
-    // Edit Expiry Date (Reduce or Increase Time)
+    // Copy to Clipboard
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert(`Copied: ${text}`);
+        });
+    }
+
+    // 🌟 Edit User Note Function
+    async function editNote(key, currentNote) {
+        const newNote = prompt(`Enter a note for user [${key}]\n(e.g., Paid 50%, VIP User, Blocked due to spam):`, currentNote);
+        if (newNote !== null) { // If user didn't press Cancel
+            await db.collection("licenses").doc(key).update({
+                note: newNote
+            });
+        }
+    }
+
+    // Kick / Block User
+    async function toggleBlock(key, currentStatus) {
+        const newStatus = currentStatus === 'active' ? 'blocked' : 'active';
+        const confirmMsg = currentStatus === 'active' 
+            ? "Are you sure you want to KICK this user?\nTheir extension will log out on next refresh." 
+            : "Are you sure you want to UNBLOCK this user?";
+            
+        if(confirm(confirmMsg)) {
+            await db.collection("licenses").doc(key).update({
+                status: newStatus
+            });
+        }
+    }
+
+    // 🌟 UPGRADED: Edit Expiry Date AND Smart Dynamic Plan Name
     async function editExpiry(key, currentDate) {
-        const newDate = prompt(`Edit expiry date for ${key}\nFormat: YYYY-MM-DD\n(E.g. reduce date if payment is due, increase for renew)`, currentDate);
+        const newDate = prompt(`Edit expiry date for ${key}\nFormat: YYYY-MM-DD`, currentDate);
         
         if(newDate && newDate !== currentDate) {
-            // Basic date format validation
             const parsedDate = new Date(newDate);
             if(isNaN(parsedDate.getTime())) {
                 alert("Invalid Date Format! Please use YYYY-MM-DD");
                 return;
             }
             
+            // স্মার্ট ক্যালকুলেশন: আজকের দিন থেকে নতুন ডেট পর্যন্ত কত দিন হয় সেটা বের করা
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            parsedDate.setHours(0,0,0,0);
+            
+            const timeDiff = parsedDate - today;
+            const newDays = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            
+            // যদি কেউ পেছনের ডেট (Past Date) দেয়, তাহলে দিন যেন মাইনাস না দেখায় তাই 0 করে দেওয়া হলো
+            const finalDays = newDays >= 0 ? newDays : 0;
+            const newPlanName = `${finalDays} Days (Upgraded ⚡)`;
+            
+            // 💡 ডায়নামিক প্ল্যান নেম আপডেট
             await db.collection("licenses").doc(key).update({
-                expiresAt: newDate
+                expiresAt: newDate,
+                plan: newPlanName
             });
-            alert("Expiry date updated successfully!");
+            alert(`Expiry updated! Plan marked as '${newPlanName}'`);
         }
     }
 
-    // Renew or Reset Device ID
+    // Reset Device
     async function resetDevice(key, currentId) {
         if(!currentId) {
             alert("This key is already Free. No device is locked yet!");
             return;
         }
-        if(confirm(`Are you sure you want to remove Device ID [${currentId}]?\nThis will allow the user to use the key on a new browser/device.`)) {
+        if(confirm(`Are you sure you want to remove Device ID [${currentId}]?`)) {
             await db.collection("licenses").doc(key).update({
-                deviceId: "" // Clear device ID
+                deviceId: "" 
             });
         }
     }
 
     // Delete License
     async function deleteLicense(key) {
-        if(confirm("Are you sure you want to permanently delete this key?\nThe user's extension will stop working immediately.")) {
+        if(confirm("Are you sure you want to permanently delete this key?")) {
             await db.collection("licenses").doc(key).delete();
         }
     }
