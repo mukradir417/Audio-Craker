@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "My Audio Capture",
+  "version": "1.0",
+  "description": "A simple extension to capture and download website audio.",
+  "permissions": ["activeTab", "scripting", "downloads"],
+  "action": {
+    "default_title": "Start Audio Capture"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

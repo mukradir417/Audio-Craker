@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Master - Advanced Admin Panel</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+        .container { max-width: 1050px; margin: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 15px; margin-bottom: 20px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); margin-bottom: 20px; }
+        
+        .form-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        select, input, button { padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; outline: none; font-weight: bold; }
+        button { background: #2563eb; cursor: pointer; border: none; transition: 0.2s; }
+        button:hover { background: #1d4ed8; }
+        
+        .btn-danger { background: #ef4444; } .btn-danger:hover { background: #b91c1c; }
+        .btn-warning { background: #f59e0b; color: #000; } .btn-warning:hover { background: #d97706; }
+        .btn-info { background: #06b6d4; } .btn-info:hover { background: #0891b2; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; font-size: 13px; }
+        th { color: #94a3b8; text-transform: uppercase; font-size: 11px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .badge-active { background: #10b981; }
+        .badge-expired { background: #ef4444; }
+        .days-left { color: #38bdf8; font-weight: bold; font-size: 11px; margin-left: 5px; }
+        
+        .action-btns { display: flex; gap: 5px; flex-wrap: wrap; }
+        .action-btns button { padding: 6px 10px; font-size: 11px; border-radius: 6px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>🎧 Audio Master - Advanced Admin Panel</h2>
+        <span style="color: #10b981; font-weight: bold; background: rgba(16, 185, 129, 0.1); padding: 8px 15px; border-radius: 20px;">🟢 Firebase Connected</span>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top: 0;">Create New License</h3>
+        <div class="form-group">
+            <select id="plan" onchange="toggleCustomInput()">
+                <option value="1">1 Day (Trial)</option>
+                <option value="7">7 Days (Weekly)</option>
+                <option value="30" selected>30 Days (Monthly)</option>
+                <option value="180">180 Days (Half-Yearly)</option>
+                <option value="365">365 Days (Yearly)</option>
+                <option value="custom">⚙️ Custom Days...</option>
+            </select>
+            
+            <input type="number" id="customDays" placeholder="Enter Days" style="display: none; width: 120px;" min="1">
+            
+            <button onclick="generateLicense()">➕ Generate Key</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top: 0;">All Active & Expired Licenses</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>License Key</th>
+                        <th>Plan</th>
+                        <th>Status</th>
+                        <th>Expiry Date</th>
+                        <th>Device Locked (ID)</th>
+                        <th>Actions Control</th>
+                    </tr>
+                </thead>
+                <tbody id="licenseTable">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ⚠️ আপনার ফায়ারবেসের আসল কনফিগারেশন
+    const firebaseConfig = {
+        apiKey: "AIzaSyA4m_unD4vwTzGOans7RpENcfPNNUOTysE",
+        projectId: "audio-master-admin"
+    };
+
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // Toggle custom days input
+    function toggleCustomInput() {
+        const planVal = document.getElementById('plan').value;
+        const customInput = document.getElementById('customDays');
+        if(planVal === 'custom') {
+            customInput.style.display = 'block';
+        } else {
+            customInput.style.display = 'none';
+        }
+    }
+
+    // Random Key Generator (e.g. AH-XXXX-XXXX-XXXX)
+    function makeKey() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let segment = () => {
+            let str = '';
+            for(let i=0; i<4; i++) str += chars.charAt(Math.floor(Math.random() * chars.length));
+            return str;
+        }
+        return `AH-${segment()}-${segment()}-${segment()}`;
+    }
+
+    // Add License to Firebase
+    async function generateLicense() {
+        const planSelect = document.getElementById('plan').value;
+        let days = parseInt(planSelect);
+        let planName = days + " Days";
+
+        if(planSelect === 'custom') {
+            const customVal = document.getElementById('customDays').value;
+            if(!customVal || customVal <= 0) {
+                alert("Please enter valid custom days!");
+                return;
+            }
+            days = parseInt(customVal);
+            planName = days + " Days (Custom)";
+        }
+
+        const key = makeKey();
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + days);
+
+        await db.collection("licenses").doc(key).set({
+            plan: planName,
+            status: "active",
+            deviceId: "", // Initially empty (No device locked)
+            expiresAt: expiryDate.toISOString().split('T')[0] // Format: YYYY-MM-DD
+        });
+        
+        alert(`New Key Generated Successfully!\nKey: ${key}\nDuration: ${planName}`);
+    }
+
+    // Load Licenses from Firebase
+    function loadLicenses() {
+        db.collection("licenses").onSnapshot((snapshot) => {
+            const table = document.getElementById('licenseTable');
+            table.innerHTML = ''; // Clear table
+            
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const key = doc.id;
+                
+                // Date & Expiry Calculation
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                const expDate = new Date(data.expiresAt);
+                expDate.setHours(0,0,0,0);
+                
+                const timeDiff = expDate - today;
+                const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                
+                const isExpired = daysLeft < 0;
+                const statusBadge = isExpired ? '<span class="badge badge-expired">Expired</span>' : '<span class="badge badge-active">Active</span>';
+                const daysText = isExpired ? `<span class="days-left" style="color:#ef4444;">(Expired)</span>` : `<span class="days-left">(${daysLeft} Days Left)</span>`;
+                
+                // Device Display
+                const deviceDisplay = data.deviceId ? `<span style="color:#fbbf24;">🔒 ${data.deviceId}</span>` : `<span style="color:#10b981;">🟢 Free (Not Used)</span>`;
+
+                // Row Design
+                const row = `<tr>
+                    <td style="font-family: monospace; font-weight: bold; color: #fff;">${key}</td>
+                    <td style="color: #cbd5e1;">${data.plan}</td>
+                    <td>${statusBadge}</td>
+                    <td>${data.expiresAt} <br>${daysText}</td>
+                    <td style="font-family: monospace;">${deviceDisplay}</td>
+                    <td class="action-btns">
+                        <button class="btn-info" onclick="editExpiry('${key}', '${data.expiresAt}')">⏱ Edit Time</button>
+                        <button class="btn-warning" onclick="resetDevice('${key}', '${data.deviceId}')">🔄 Reset ID</button>
+                        <button class="btn-danger" onclick="deleteLicense('${key}')">🗑 Delete</button>
+                    </td>
+                </tr>`;
+                table.innerHTML += row;
+            });
+        });
+    }
+
+    // Edit Expiry Date (Reduce or Increase Time)
+    async function editExpiry(key, currentDate) {
+        const newDate = prompt(`Edit expiry date for ${key}\nFormat: YYYY-MM-DD\n(E.g. reduce date if payment is due, increase for renew)`, currentDate);
+        
+        if(newDate && newDate !== currentDate) {
+            // Basic date format validation
+            const parsedDate = new Date(newDate);
+            if(isNaN(parsedDate.getTime())) {
+                alert("Invalid Date Format! Please use YYYY-MM-DD");
+                return;
+            }
+            
+            await db.collection("licenses").doc(key).update({
+                expiresAt: newDate
+            });
+            alert("Expiry date updated successfully!");
+        }
+    }
+
+    // Renew or Reset Device ID
+    async function resetDevice(key, currentId) {
+        if(!currentId) {
+            alert("This key is already Free. No device is locked yet!");
+            return;
+        }
+        if(confirm(`Are you sure you want to remove Device ID [${currentId}]?\nThis will allow the user to use the key on a new browser/device.`)) {
+            await db.collection("licenses").doc(key).update({
+                deviceId: "" // Clear device ID
+            });
+        }
+    }
+
+    // Delete License
+    async function deleteLicense(key) {
+        if(confirm("Are you sure you want to permanently delete this key?\nThe user's extension will stop working immediately.")) {
+            await db.collection("licenses").doc(key).delete();
+        }
+    }
+
+    // Run on load
+    loadLicenses();
+</script>
+
+</body>
+</html>
